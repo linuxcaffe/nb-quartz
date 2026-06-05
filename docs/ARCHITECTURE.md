@@ -169,6 +169,58 @@ setup.sh
 
 ---
 
+## nb-web Modules (future)
+
+nb-web (`~/dev/nb-web/`) is the browser-based editing interface for nb notebooks.
+It already works with any notebook generically. But some nb-web features are
+**notebook-specific** today — the VCF browser appears only in `contacts`, shop
+item previews are hardcoded, etc. These are not yet modular.
+
+A full module system requires both sides to be modular:
+
+```
+nb-quartz module          nb-web counterpart
+─────────────────         ──────────────────────────────────────
+components/ plugins/  ↔   custom preview renderers
+layout.fragment.ts    ↔   custom toolbar buttons / panels
+styles/               ↔   custom list item styling
+install.sh            ↔   (no install hook in nb-web yet)
+```
+
+### Proposed nb-web module interface
+
+A nb-web module would be a JS file loaded conditionally when a matching
+notebook is active. It would register against a set of extension points:
+
+```javascript
+NbWeb.registerModule('shop', {
+  notebooks: ['preciousfinds.ca'],          // activate for these notebooks
+  previewRenderer: _renderShopItem,         // replaces/extends renderPreview()
+  toolbarButtons: [{ id: 'vcf', ... }],     // injected into list panel toolbar
+  listExcerpt: _shopItemExcerpt,            // custom excerpt logic for list items
+  addFormExtras: _shopAddFormFields,        // extra fields in the Add note form
+})
+```
+
+nb-web would call the registered hooks at the right points in its render
+pipeline. The core remains generic; modules opt in to the extension points
+they need.
+
+### What this enables
+
+- `shop` module: item preview, VCF browser, contacts excerpt (phone/email)
+- `docs` module: doc-specific navigation, link checking, publish status
+- Any module can add toolbar buttons, preview renderers, or list decorations
+  scoped to the notebooks it declares
+
+### Current state
+
+Not started. The nb-web extension points don't exist yet. Existing
+notebook-specific features (VCF browser, contact excerpts, shop previews)
+are hardcoded and would need refactoring into the first module.
+
+---
+
 ## Relationship to nb-website
 
 nb-website (`~/dev/nb-website/`) was the first iteration — built
