@@ -22,6 +22,14 @@ ask()  { echo -en "${BOLD}$* ${NC}"; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Source nvm if available and node is too old / missing
+if ! command -v node &>/dev/null || \
+   (( $(node --version 2>/dev/null | sed 's/v//' | cut -d. -f1) < 22 )); then
+  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+  [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+  command -v nvm &>/dev/null && nvm use 22 --silent 2>/dev/null || true
+fi
+
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 
 check_prereqs() {
@@ -157,6 +165,9 @@ ensure_notebook_remote() {
   local remote
   remote=$(git -C "$NB_DIR" remote get-url origin 2>/dev/null || echo "")
 
+  # GitHub Actions checkout requires a GitHub-hosted repo.
+  # If the notebook already has a non-GitHub remote (e.g. Codeberg, self-hosted),
+  # add a second remote 'github' pointing to a new GitHub repo.
   if [[ -z "$remote" ]]; then
     warn "No remote set for notebook '${NOTEBOOK}'."
     info "Creating GitHub repo ${GH_USER}/${NOTEBOOK}..."
@@ -165,13 +176,32 @@ ensure_notebook_remote() {
     git -C "$NB_DIR" remote add origin "git@github.com:${GH_USER}/${NOTEBOOK}.git"
     git -C "$NB_DIR" push -u origin HEAD
     ok "Notebook repo created: github.com/${GH_USER}/${NOTEBOOK}"
-  else
-    ok "Notebook remote: ${remote}"
+  elif echo "$remote" | grep -q "github.com"; then
+    ok "Notebook remote (GitHub): ${remote}"
     git -C "$NB_DIR" push -u origin HEAD 2>/dev/null || true
+  else
+    warn "Notebook remote is not GitHub: ${remote}"
+    warn "The Actions workflow requires the notebook to be on GitHub."
+    echo ""
+    ask "Create a GitHub repo for this notebook alongside the existing remote? [y/N]:"; read -r _yn
+    [[ "$_yn" =~ ^[Yy]$ ]] || die "Aborted. Mirror the notebook to GitHub first, then re-run."
+
+    info "Creating GitHub repo ${GH_USER}/${NOTEBOOK}..."
+    gh repo create "${GH_USER}/${NOTEBOOK}" --public \
+      --description "${SITE_TITLE} — nb notebook content" 2>/dev/null \
+      || warn "Repo may already exist."
+
+    # Add as a second remote named 'github' so the original remote is undisturbed
+    if ! git -C "$NB_DIR" remote get-url github &>/dev/null; then
+      git -C "$NB_DIR" remote add github "git@github.com:${GH_USER}/${NOTEBOOK}.git"
+    fi
+    git -C "$NB_DIR" push github HEAD:"${NOTEBOOK}"
+    ok "Notebook mirrored to github.com/${GH_USER}/${NOTEBOOK} (branch: ${NOTEBOOK})"
+    warn "To keep GitHub in sync: git -C ${NB_DIR} push github HEAD:${NOTEBOOK}"
+    warn "Or add a post-sync hook. The original remote is untouched."
   fi
 
   NOTEBOOK_REPO="${GH_USER}/${NOTEBOOK}"
-  # nb stores each notebook on a branch named after it
   NOTEBOOK_BRANCH="${NOTEBOOK}"
 }
 
@@ -213,9 +243,14 @@ install_core() {
     echo 'export { UnderscoreFiles } from "./filters/underscoreFiles"' >> "$plugins_index"
   fi
 
-  # Image optimisation script (used by the Actions workflow)
+  # Image optimisation script + sharp dependency
   mkdir -p "${QUARTZ_DIR}/scripts"
   cp "${SCRIPT_DIR}/core/scripts/optimize-images.mjs" "${QUARTZ_DIR}/scripts/"
+  cd "${QUARTZ_DIR}"
+  if ! npm ls sharp &>/dev/null 2>&1; then
+    info "Adding sharp image processing dependency..."
+    npm install sharp --save --quiet
+  fi
 
   # Base layout (standard Quartz — all components intact)
   cp "${SCRIPT_DIR}/templates/quartz.layout.ts" "${QUARTZ_DIR}/quartz.layout.ts"
