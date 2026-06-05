@@ -1,0 +1,190 @@
+# nb-quartz Architecture
+
+## Vision
+
+nb-quartz turns any [nb](https://xwmx.github.io/nb/) notebook into a
+[Quartz v4](https://quartz.jzhao.xyz/) static site, deployed to GitHub Pages
+via a two-repo GitHub Actions pipeline.
+
+The core is deliberately generic — a clean Quartz installation with all
+standard features intact (Explorer, Graph, Backlinks, full-text search,
+wikilinks, tags). Optional **modules** extend it for specific use cases.
+The shop module (extracted from preciousfinds.ca) is the reference
+implementation.
+
+---
+
+## Two-Repo Pattern
+
+```
+github.com/<user>/<notebook>        ← nb notebook (content, images, notes)
+github.com/<user>/<notebook>-site   ← nb-quartz config (this repo pattern)
+```
+
+- The notebook repo is managed entirely by `nb sync` — no manual git.
+- The site repo holds Quartz config, custom components, and the Actions workflow.
+- On every push to `main` (or on a 30-min schedule), Actions checks out both
+  repos, runs the build, and deploys to Pages.
+
+This separation keeps content and presentation independent. The notebook
+can be edited from nb-web, the terminal, or any nb client without touching
+the Quartz config.
+
+---
+
+## Directory Structure
+
+```
+nb-quartz/
+├── setup.sh                    # Interactive setup — creates a new site repo
+├── templates/
+│   ├── deploy.yml              # GitHub Actions workflow template
+│   ├── quartz.config.ts        # Base Quartz config (SITE_TITLE, BASE_URL placeholders)
+│   └── quartz.layout.ts        # Base layout — all standard Quartz components
+├── themes/
+│   └── <name>/
+│       ├── apply.sh            # Patches config + layout for this theme
+│       └── custom.scss         # Theme-specific CSS variables and overrides
+├── modules/
+│   └── <name>/
+│       ├── module.json         # Module metadata and layout slot declarations
+│       ├── components/         # Quartz TSX components
+│       ├── plugins/            # Custom filters, transformers, emitters
+│       ├── styles/             # Additional SCSS
+│       └── install.sh          # Wires module into a Quartz instance
+└── docs/
+    └── ARCHITECTURE.md         # This file
+```
+
+---
+
+## Modules
+
+A module is a self-contained extension that adds functionality to the base
+Quartz install. Modules are installed at setup time; `setup.sh` generates
+the final `quartz.layout.ts` from the base template plus each module's
+layout declarations.
+
+### module.json
+
+```json
+{
+  "name": "shop",
+  "description": "Vintage shop — item listings, categories, image gallery",
+  "version": "1.0.0",
+  "components": ["ShopHome", "ShopNav", "ItemGrid", "ItemGallery", "ItemMeta",
+                 "CategoryContent", "FeaturedItem", "TagFeed"],
+  "plugins": {
+    "filters":      ["shopStatus", "underscoreFiles"],
+    "transformers": ["categoryToTag"],
+    "emitters":     ["categoryPage"]
+  },
+  "layout": {
+    "header":    ["ShopNav"],
+    "left":      [],
+    "right":     [],
+    "beforeBody": ["FeaturedItem"],
+    "pageBody":  ["ShopHome", "ItemGrid", "ItemGallery", "ItemMeta",
+                  "CategoryContent", "TagFeed"]
+  }
+}
+```
+
+### Layout Merging
+
+`quartz.layout.ts` is a TypeScript file generated at setup time — not
+edited by hand. `setup.sh` builds it by:
+
+1. Starting from `templates/quartz.layout.ts` (base slots, standard components)
+2. For each installed module, reading `module.json` layout declarations
+3. Appending component imports and slot entries in declaration order
+4. Writing the final file into the Quartz instance
+
+Build-time merge keeps things simple: no runtime magic, no Quartz internals
+modified, and the generated file is readable and auditable.
+
+Multiple modules can add to the same slot; order is determined by the
+order modules are listed in setup. Conflicts (two modules claiming the
+same exclusive slot) are caught at setup time with a clear error.
+
+---
+
+## Core Plugins
+
+These filters live in nb-quartz core because they apply to any nb-based site:
+
+| Plugin | Type | Purpose |
+|--------|------|---------|
+| `draft` | filter | Hide notes with `draft: true` frontmatter |
+| `underscoreFiles` | filter | Hide `_meta.md`-style config notes from the site |
+
+Shop-specific plugins (`shopStatus`, `categoryToTag`, `categoryPage`) live
+in the shop module.
+
+---
+
+## Image Optimization
+
+Part of core. The Actions workflow runs `scripts/optimize-images.mjs`
+(using `sharp`) before the Quartz build, generating:
+
+- `{name}-thumb.webp` — 480 px wide, quality 80 (grids, strips)
+- `{name}.webp`       — 1200 px wide, quality 85 (galleries, heroes)
+
+Source images (jpg/png) in the notebook's `images/` folder are left
+unchanged. Already-optimized files are skipped via mtime comparison.
+A GitHub Actions cache keyed on source image hashes avoids redundant
+processing across builds.
+
+---
+
+## Themes
+
+A theme customises fonts, colours, and layout pruning without touching
+Quartz internals. `apply.sh` patches `quartz.config.ts` and `quartz.layout.ts`
+via sed; `custom.scss` sets CSS custom properties.
+
+Themes and modules are orthogonal — any theme works with any module
+combination.
+
+---
+
+## Setup Flow
+
+```
+setup.sh
+  ├── Gather inputs (notebook name, GitHub user, site title, base URL,
+  │   custom domain, theme, modules)
+  ├── Clone Quartz v4 into ~/dev/quartz-<notebook>/
+  ├── Install dependencies (npm ci)
+  ├── Copy core plugins (draft, underscoreFiles) into quartz/plugins/
+  ├── Apply theme (theme/apply.sh)
+  ├── For each selected module:
+  │   └── module install.sh (copy components + plugins, update layout)
+  ├── Generate quartz.layout.ts from base + module declarations
+  ├── Write deploy.yml from templates/deploy.yml
+  ├── Wire notebook remote (nb sync target)
+  └── Push to GitHub, enable Pages
+```
+
+---
+
+## Relationship to nb-website
+
+nb-website (`~/dev/nb-website/`) was the first iteration — built
+specifically for preciousfinds.ca with shop assumptions baked in.
+nb-quartz is the generalisation: core first, shop as a module.
+
+preciousfinds.ca will eventually migrate to nb-quartz + shop module,
+validating the module system. Until then it runs as a standalone site.
+
+---
+
+## Status
+
+| Phase | Status |
+|-------|--------|
+| 1 — nb-quartz core | 🔧 In progress |
+| 2 — Module interface | 📐 Designed, not built |
+| 3 — Shop module extraction | ⏳ Pending phase 2 |
+| preciousfinds.ca migration | ⏳ Pending phase 3 |
