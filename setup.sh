@@ -186,10 +186,20 @@ ensure_notebook_remote() {
     ask "Create a GitHub repo for this notebook alongside the existing remote? [y/N]:"; read -r _yn
     [[ "$_yn" =~ ^[Yy]$ ]] || die "Aborted. Mirror the notebook to GitHub first, then re-run."
 
-    info "Creating GitHub repo ${GH_USER}/${NOTEBOOK}..."
-    gh repo create "${GH_USER}/${NOTEBOOK}" --public \
-      --description "${SITE_TITLE} — nb notebook content" 2>/dev/null \
-      || warn "Repo may already exist."
+    # Create repo if it doesn't exist; if it does, ensure it's public
+    if gh repo view "${GH_USER}/${NOTEBOOK}" &>/dev/null 2>&1; then
+      local is_private
+      is_private=$(gh repo view "${GH_USER}/${NOTEBOOK}" --json isPrivate --jq '.isPrivate')
+      if [[ "$is_private" == "true" ]]; then
+        warn "github.com/${GH_USER}/${NOTEBOOK} exists but is private — making it public..."
+        gh repo edit "${GH_USER}/${NOTEBOOK}" --visibility public
+      fi
+      ok "Using existing GitHub repo: github.com/${GH_USER}/${NOTEBOOK}"
+    else
+      info "Creating GitHub repo ${GH_USER}/${NOTEBOOK}..."
+      gh repo create "${GH_USER}/${NOTEBOOK}" --public \
+        --description "${SITE_TITLE} — nb notebook content"
+    fi
 
     # Add as a second remote named 'github' so the original remote is undisturbed
     if ! git -C "$NB_DIR" remote get-url github &>/dev/null; then
@@ -396,7 +406,7 @@ print_summary() {
   echo ""
   echo "  Quartz config:  ${QUARTZ_DIR}"
   echo "  Config repo:    https://github.com/${GH_USER}/${SITE_REPO}"
-  echo "  Content repo:   https://github.com/${GH_USER}/${NOTEBOOK_REPO}"
+  echo "  Content repo:   https://github.com/${NOTEBOOK_REPO}"
   echo "  Live at:        https://${BASE_URL}"
   echo ""
   echo -e "${BOLD}Ongoing workflow:${NC}"
