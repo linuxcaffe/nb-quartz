@@ -155,6 +155,11 @@ gather_inputs() {
   echo "  Theme:      ${THEME}"
   echo "  Modules:    ${SELECTED_MODULES[*]:-none}"
   echo ""
+
+  ask "Add example content to get you started? [Y/n]:"; read -r _ex
+  STARTER_CONTENT=true
+  [[ "$_ex" =~ ^[Nn]$ ]] && STARTER_CONTENT=false
+
   ask "Proceed? [y/N]:"; read -r _yn
   [[ "$_yn" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 0; }
   echo ""
@@ -404,22 +409,7 @@ EOF
 # ── Starter content ───────────────────────────────────────────────────────────
 
 create_starter_content() {
-  # Core: create index.md if none exists (blank home page otherwise)
-  local index_file="${NB_DIR}/index.md"
-  if [[ ! -f "$index_file" ]]; then
-    info "Creating index.md in notebook..."
-    cat > "$index_file" <<EOF
----
-title: ${SITE_TITLE}
----
-
-Welcome to ${SITE_TITLE}.
-EOF
-    (cd "$NB_DIR" && nb index add "index.md" 2>/dev/null) || true
-    ok "index.md created"
-  fi
-
-  # Shop module: install item template into .templates/items/
+  # Item template always installed — needed regardless of example content choice
   if [[ " ${SELECTED_MODULES[*]} " == *" shop "* ]]; then
     local tmpl_dir="${NB_DIR}/.templates/items"
     mkdir -p "$tmpl_dir"
@@ -444,8 +434,138 @@ tags: [{{tags}}]
 
 {{content}}
 EOF
-      ok "Item template created at .templates/items/item.md"
+      ok "Item template installed at .templates/items/item.md"
     fi
+  fi
+
+  [[ "$STARTER_CONTENT" == "true" ]] || return 0
+
+  info "Adding starter content..."
+  local _added=()
+
+  # ── Core: index.md ──────────────────────────────────────────────────────────
+  if [[ ! -f "${NB_DIR}/index.md" ]]; then
+    cat > "${NB_DIR}/index.md" <<EOF
+---
+title: ${SITE_TITLE}
+---
+
+Welcome to **${SITE_TITLE}**!
+
+This site is built from a [nb](https://xwmx.github.io/nb/) notebook and
+published automatically to GitHub Pages.
+
+## How to update this site
+
+1. **Write or edit notes** — in nb-web, the terminal, or any nb client
+2. **Sync** — run \`nb sync ${NOTEBOOK}\` or use Menu → Sync in nb-web
+3. **Wait** — the site rebuilds automatically within 30 minutes
+   (or trigger it now: \`gh workflow run deploy.yml --repo ${GH_USER}/${SITE_REPO}\`)
+
+## Customise site-wide settings
+
+Edit the note **_meta.md** to change:
+- **tagline** — shown in the header below the site title
+- **description** — used by search engines
+- **SEO** — additional keywords
+
+## Add pages
+
+Create any Markdown note in the notebook and it will appear on the site.
+Notes beginning with \`_\` (like \`_meta.md\`) are hidden from the public site
+but remain in your notebook.
+EOF
+    _added+=("index.md")
+  fi
+
+  # ── Core: about.md ──────────────────────────────────────────────────────────
+  if [[ ! -f "${NB_DIR}/about.md" ]]; then
+    cat > "${NB_DIR}/about.md" <<EOF
+---
+title: About
+---
+
+*Replace this page with your own About content.*
+
+This note was created by nb-quartz setup. Edit it in nb-web or with \`nb edit about.md\`.
+EOF
+    _added+=("about.md")
+  fi
+
+  # ── Shop: example item + nav page ───────────────────────────────────────────
+  if [[ " ${SELECTED_MODULES[*]} " == *" shop "* ]]; then
+    mkdir -p "${NB_DIR}/items"
+
+    if [[ ! -f "${NB_DIR}/items/example-item.md" ]]; then
+      cat > "${NB_DIR}/items/example-item.md" <<EOF
+---
+title: Example Item
+category: example
+status: available
+price: \$0.00
+image: images/example.jpg
+description: A short description shown in the shop and on the item page.
+condition: Excellent
+size: 10 × 5 × 3 cm
+shipping: Canada Post, ~\$8
+platform: Etsy
+listing: https://etsy.com/listing/example
+tags: [new]
+---
+
+The body of the note is the item's full description page.
+
+Each item lives in the \`items/\` folder with this frontmatter:
+
+| Field | Purpose |
+|-------|---------|
+| category | Groups items in the nav and generates /category/\<name\> pages |
+| status | \`available\` shows the item; \`sold\` shows it as sold; anything else hides it |
+| price | Displayed as-is — e.g. \$24.00 |
+| image | Filename from the notebook's \`images/\` folder (comma-separate for a gallery) |
+| description | Short text for cards and the item header |
+| condition | Free text — Excellent, Good, As-is, etc. |
+| size | Free text |
+| shipping | Free text |
+| platform | External marketplace name (Etsy, eBay, etc.) |
+| listing | URL to external listing |
+
+Tag an item \`featured\` to include it in the featured section on the home page.
+
+*Delete this note when you have real items to list.*
+EOF
+      _added+=("items/example-item.md")
+    fi
+
+    if [[ ! -f "${NB_DIR}/new-arrivals.md" ]]; then
+      cat > "${NB_DIR}/new-arrivals.md" <<EOF
+---
+title: New Arrivals
+with_tags: [new]
+---
+
+This page is a **tag-feed** — it automatically shows all items tagged \`new\`.
+
+Any note with a \`with_tags:\` list in its frontmatter appears as a section
+in the shop navigation and on the home page. Remove the tag from items
+once they're no longer new arrivals.
+
+Create more pages like this for curated collections — Vintage, Sale, Featured, etc.
+*Edit or replace this page to suit your shop.*
+EOF
+      _added+=("new-arrivals.md")
+    fi
+  fi
+
+  # Register all new files with nb's index
+  for f in "${_added[@]}"; do
+    (cd "$NB_DIR" && nb index add "$f" 2>/dev/null) || true
+  done
+
+  if [[ ${#_added[@]} -gt 0 ]]; then
+    ok "Starter content added: ${_added[*]}"
+  else
+    info "Starter content: all files already exist — nothing added"
   fi
 }
 
