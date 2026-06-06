@@ -237,6 +237,22 @@ validating the module system. Until then it runs as a standalone site.
 | Phase | Status |
 |-------|--------|
 | 1 — nb-quartz core | ✅ Working |
-| 2 — Module interface | 📐 Designed, not built |
-| 3 — Shop module extraction | ⏳ Pending phase 2 |
-| preciousfinds.ca migration | ⏳ Pending phase 3 |
+| 2 — Module interface | ✅ Working (shop is reference implementation) |
+| 3 — Shop module extraction | ✅ Validated against preciousfinds.ca notebook |
+| preciousfinds.ca migration | ⏳ Pending — warm-vintage theme + metadata gaps (see below) |
+
+### Known gaps (found during test)
+
+**`_meta.md` not wired to site metadata** — `setup.sh` creates `_meta.md` in the
+notebook with `tagline`, `description`, and `SEO` fields, but no component
+reads them yet. Site title comes from `quartz.config.ts` (set at setup time);
+the tagline and description fields in `_meta.md` are currently inert.
+A future `SiteConfig` transformer or emitter should read `_meta.md` and inject
+these into Quartz's page metadata and the site header at build time.
+
+**WebP source images produce low-res variants** — `optimize-images.mjs` skips
+files whose output is already newer than the source, but if the source itself
+is a `.webp` (e.g. `Jacket1.webp`), sharp generates a 480 px thumbnail from it
+which may look soft if the source was already compressed. In practice all
+notebook images will be full-resolution jpg/png; `.webp` sources are an edge
+case not worth guarding against.
