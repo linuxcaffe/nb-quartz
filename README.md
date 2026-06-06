@@ -94,6 +94,20 @@ nb-quartz/
     └── ARCHITECTURE.md        # Full architecture reference
 ```
 
+## Pitfalls
+
+**`content/` symlink** — If your existing Quartz install has `content/` as a
+symlink to the live notebook directory (a common local dev pattern), `rm -rf
+content/` with a trailing slash follows the symlink and **deletes the notebook
+contents**. `setup.sh` detects this and uses `rm -f` on the symlink only, but
+if you ever clean a Quartz install manually, use `rm -f content` (no trailing
+slash) not `rm -rf content/`.
+
+**Test installs and the live site** — `setup.sh` keys the local Quartz
+directory on the *site repo name* (`~/dev/quartz-<SITE_REPO>`), not the
+notebook name. Use a distinct site repo name for test runs (e.g.
+`pf-quartz-test`) so the test never touches your live Quartz install.
+
 ## Architecture
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete design: two-repo pattern, module system, layout merging, image optimisation, themes, and the planned nb-web counterpart.

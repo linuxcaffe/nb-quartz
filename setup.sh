@@ -234,9 +234,12 @@ setup_quartz() {
   info "Patching quartz.config.ts..."
   sed -i "s|pageTitle: \".*\"|pageTitle: \"${SITE_TITLE}\"|" quartz.config.ts
   sed -i "s|baseUrl: \".*\"|baseUrl: \"${BASE_URL}\"|" quartz.config.ts
-  # Remove content/ without following symlinks — a trailing slash on rm -rf
-  # follows a symlink to its target, which could be the live notebook directory.
+  # Remove content/ without following symlinks.
+  # TRAP: `rm -rf content/` with a trailing slash follows a symlink to its
+  # target. If content/ points at the live notebook (~/.nb/<notebook>/),
+  # that silently destroys the entire notebook. Always check first.
   if [[ -L "content" ]]; then
+    warn "content/ is a symlink — removing link only, target is safe"
     rm -f "content"
   else
     rm -rf "content"
