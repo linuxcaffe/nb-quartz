@@ -142,8 +142,8 @@ gather_inputs() {
     done
   fi
 
-  # Paths
-  QUARTZ_DIR="${HOME}/dev/quartz-${NOTEBOOK}"
+  # Paths — keyed on site repo name so multiple sites from the same notebook don't collide
+  QUARTZ_DIR="${HOME}/dev/quartz-${SITE_REPO}"
 
   # Confirm
   echo ""
