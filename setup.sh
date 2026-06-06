@@ -234,7 +234,13 @@ setup_quartz() {
   info "Patching quartz.config.ts..."
   sed -i "s|pageTitle: \".*\"|pageTitle: \"${SITE_TITLE}\"|" quartz.config.ts
   sed -i "s|baseUrl: \".*\"|baseUrl: \"${BASE_URL}\"|" quartz.config.ts
-  rm -rf content/
+  # Remove content/ without following symlinks — a trailing slash on rm -rf
+  # follows a symlink to its target, which could be the live notebook directory.
+  if [[ -L "content" ]]; then
+    rm -f "content"
+  else
+    rm -rf "content"
+  fi
 
   ok "Quartz configured"
 }
