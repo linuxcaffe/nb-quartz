@@ -44,9 +44,30 @@ A module adds components, plugins, and layout slots for a specific use case. Ins
 
 | Module | Status | Description |
 |--------|--------|-------------|
-| shop   | 📐 Stub | Vintage shop — item listings, categories, image gallery |
+| shop   | ✅ Ready | Vintage shop — item listings, categories, image gallery |
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full module spec.
+
+### Shop module — content conventions
+
+Items live in an `items/` folder in your notebook. Each item is a Markdown note with frontmatter:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `title` | ✅ | Item name |
+| `category` | ✅ | Groups items into nav links and category pages |
+| `status` | ✅ | `available` or `sold` — other values hide the item |
+| `image` | — | Filename(s) from `images/`, comma-separated for galleries |
+| `price` | — | Displayed as-is (e.g. `$24.00`) |
+| `description` | — | Short text shown in featured cards and item page |
+| `condition` | — | e.g. `Excellent`, `Good`, `As-is` |
+| `size` | — | Free text |
+| `shipping` | — | e.g. `Canada Post, ~$8` |
+| `platform` | — | External marketplace name (e.g. `Etsy`) |
+| `listing` | — | URL to external listing (shown as "View on Platform →") |
+| `qtty` | — | Quantity, shown as `×2` |
+
+Tag any item `featured` to include it in the rotating featured section on the home page. Non-item pages with a `with_tags:` list appear as named sections in the shop nav and home page.
 
 ## Directory layout
 
