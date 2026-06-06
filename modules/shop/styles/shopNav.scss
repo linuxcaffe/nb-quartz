@@ -1,0 +1,29 @@
+.shop-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  background: color-mix(in srgb, var(--secondary) 85%, var(--dark));
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+
+  a {
+    color: var(--light) !important;
+    text-decoration: none !important;
+    font-style: italic;
+    padding: 0.3rem 1rem;
+    border-radius: 3px;
+    font-size: 0.95rem;
+    transition: background 0.15s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.18);
+      text-decoration: none !important;
+    }
+
+    &.shop-nav-active {
+      background: rgba(255, 255, 255, 0.22);
+      font-weight: 600;
+    }
+  }
+}

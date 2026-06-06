@@ -1,23 +1,19 @@
 {
   "name": "shop",
   "description": "Vintage shop — item listings, categories, image gallery",
-  "version": "0.1.0",
-  "status": "stub — to be extracted from quartz-preciousfinds.ca",
+  "version": "1.0.0",
   "components": [
     "ShopHome", "ShopNav", "ItemGrid", "ItemGallery", "ItemMeta",
-    "CategoryContent", "FeaturedItem", "TagFeed", "imageUtils"
+    "ItemCategory", "CategoryContent", "FeaturedItem", "TagFeed", "imageUtils"
   ],
   "plugins": {
-    "filters":      ["shopStatus", "underscoreFiles"],
+    "filters":      ["shopStatus"],
     "transformers": ["categoryToTag"],
     "emitters":     ["categoryPage"]
   },
   "layout": {
-    "header":    ["ShopNav"],
-    "left":      [],
-    "right":     [],
-    "beforeBody": ["FeaturedItem"],
-    "pageBody":  ["ShopHome", "ItemGrid", "ItemGallery", "ItemMeta",
-                  "CategoryContent", "TagFeed"]
+    "beforeBody": ["ShopNav", "ShopHome (conditional)", "ItemGallery", "ItemMeta", "ItemCategory", "TagFeed"],
+    "left":       [],
+    "right":      []
   }
 }

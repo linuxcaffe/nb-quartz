@@ -1,0 +1,110 @@
+@use "../../styles/variables.scss" as *;
+
+.item-meta-wrap {
+  margin: 0.5rem 0 1.75rem;
+}
+
+.item-description {
+  color: var(--darkgray);
+  font-size: 0.95rem;
+  margin: 0.25rem 0 0.5rem;
+  line-height: 1.5;
+}
+
+// ── Specs block (size / condition / shipping) ─────────────────────────────────
+
+.item-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.35rem 0 0.6rem;
+  padding: 0.4rem 0.75rem;
+  border-left: 2px solid var(--lightgray);
+}
+
+.item-date,
+.item-size,
+.item-condition,
+.item-shipping {
+  color: var(--gray);
+  font-size: 0.88rem;
+  margin: 0;
+
+  &::before {
+    font-weight: 600;
+    opacity: 0.75;
+  }
+}
+
+.item-date::before      { content: "Listed: "; }
+.item-size::before      { content: "Size: "; }
+.item-condition::before { content: "Condition: "; }
+.item-shipping::before  { content: "Shipping: "; }
+
+// ── Bottom line ───────────────────────────────────────────────────────────────
+
+.item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  background: color-mix(in srgb, var(--light) 50%, var(--lightgray));
+  border: 1px solid var(--lightgray);
+  border-left: 3px solid var(--secondary);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.item-status {
+  font-weight: 600;
+  padding: 0.15em 0.55em;
+  border-radius: 3px;
+
+  &--available {
+    background: color-mix(in srgb, #4a6741 12%, transparent);
+    color: #4a6741;
+    border: 1px solid color-mix(in srgb, #4a6741 28%, transparent);
+  }
+
+  &--sold {
+    background: color-mix(in srgb, var(--gray) 12%, transparent);
+    color: var(--gray);
+    border: 1px solid var(--lightgray);
+  }
+}
+
+.item-qtty {
+  font-size: 0.85rem;
+  color: var(--gray);
+  font-variant-numeric: tabular-nums;
+}
+
+.item-price {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--dark);
+}
+
+.item-listing {
+  margin-left: auto;
+  display: inline-block;
+  background: var(--secondary);
+  color: var(--light) !important;
+  padding: 0.3em 0.9em;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none !important;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--tertiary);
+    color: var(--light) !important;
+  }
+}
+
+.item-platform {
+  color: var(--gray);
+  margin-left: auto;
+}

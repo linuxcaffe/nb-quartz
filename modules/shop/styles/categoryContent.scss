@@ -1,0 +1,215 @@
+// ── Category page ─────────────────────────────────────────────────────────────
+
+.category-content {
+  width: 100%;
+}
+
+.category-page-title {
+  font-style: italic;
+  color: var(--secondary) !important;
+  border-bottom: none !important;
+  margin: 0.25rem 0 1rem !important;
+}
+
+.category-empty {
+  color: var(--gray);
+  font-style: italic;
+}
+
+// ── Hero card ─────────────────────────────────────────────────────────────────
+
+.cat-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--light);
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 12px rgba(44, 26, 14, 0.1);
+  max-width: 420px;
+  margin-bottom: 1.5rem;
+}
+
+.cat-hero-title {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--dark) !important;
+  text-decoration: none !important;
+  margin-bottom: 0.6rem;
+
+  &:hover {
+    color: var(--secondary) !important;
+  }
+}
+
+.cat-hero-img-wrap {
+  display: block;
+
+  img {
+    width: 100%;
+    max-width: 360px;
+    height: 260px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 1px 8px rgba(44, 26, 14, 0.12);
+  }
+}
+
+.cat-hero-img-placeholder {
+  width: 360px;
+  height: 260px;
+  background: var(--lightgray);
+  border-radius: 4px;
+}
+
+.cat-hero-caption {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-style: italic;
+  color: var(--gray) !important;
+  font-size: 0.95rem;
+  margin-top: 0.6rem;
+  text-decoration: none !important;
+
+  &:hover {
+    color: var(--secondary) !important;
+  }
+}
+
+.cat-hero-description {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: var(--darkgray) !important;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+  text-decoration: none !important;
+
+  &:hover {
+    color: var(--secondary) !important;
+  }
+}
+
+.cat-hero-condition {
+  width: 100%;
+  text-align: center;
+  color: var(--gray);
+  font-size: 0.85rem;
+  margin: 0.2rem 0 0;
+
+  &::before {
+    content: "Condition: ";
+    opacity: 0.7;
+  }
+}
+
+.cat-hero-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  width: 100%;
+}
+
+.cat-hero-qtty {
+  color: var(--gray);
+  font-size: 0.85rem;
+}
+
+.cat-hero-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.15em 0.55em;
+  border-radius: 3px;
+
+  &--available {
+    background: color-mix(in srgb, #4a6741 12%, transparent);
+    color: #4a6741;
+    border: 1px solid color-mix(in srgb, #4a6741 28%, transparent);
+  }
+
+  &--sold {
+    background: color-mix(in srgb, var(--gray) 12%, transparent);
+    color: var(--gray);
+    border: 1px solid var(--lightgray);
+  }
+}
+
+.cat-hero-price {
+  color: var(--secondary);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.cat-hero-platform {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--secondary) !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--tertiary) !important;
+  }
+}
+
+// ── Item cards grid ───────────────────────────────────────────────────────────
+
+.cat-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.cat-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 160px 210px;
+  flex: 0 0 160px;
+  text-decoration: none !important;
+  color: inherit;
+
+  &:hover .cat-card-caption {
+    color: var(--secondary);
+  }
+}
+
+.cat-card-img {
+  width: 160px;
+  height: 160px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--lightgray);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 5px;
+    box-shadow: 0 1px 8px rgba(44, 26, 14, 0.12);
+  }
+}
+
+.cat-card-img-placeholder {
+  width: 100%;
+  height: 100%;
+  background: color-mix(in srgb, var(--lightgray) 65%, var(--secondary));
+}
+
+.cat-card-caption {
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 0.4rem;
+  color: var(--darkgray);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

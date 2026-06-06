@@ -1,0 +1,328 @@
+// ── Shop homepage ─────────────────────────────────────────────────────────────
+
+.shop-home {
+  width: 100%;
+}
+
+// ── Section headings ──────────────────────────────────────────────────────────
+
+.shop-section-heading {
+  font-style: italic;
+  color: var(--secondary) !important;
+  border-bottom: none !important;
+  margin: 1.5rem 0 0.5rem !important;
+  font-size: 1.4rem;
+
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+
+    &:hover {
+      color: var(--tertiary) !important;
+      text-decoration: none !important;
+    }
+  }
+}
+
+// ── Featured section ──────────────────────────────────────────────────────────
+
+.shop-featured {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.featured-list {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+}
+
+.featured-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--light);
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 12px rgba(44, 26, 14, 0.1);
+  position: relative;
+
+  &--hidden {
+    display: none;
+  }
+
+  &-title {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--dark) !important;
+    text-decoration: none !important;
+    margin-bottom: 0.6rem;
+
+    &:hover {
+      color: var(--secondary) !important;
+    }
+  }
+
+  &-img-wrap {
+    display: block;
+
+    img {
+      width: 100%;
+      max-width: 360px;
+      height: 260px;
+      object-fit: cover;
+      border-radius: 4px;
+      box-shadow: 0 1px 8px rgba(44, 26, 14, 0.12);
+    }
+  }
+
+  &-img-placeholder {
+    width: 360px;
+    height: 260px;
+    background: var(--lightgray);
+    border-radius: 4px;
+  }
+
+  &-caption {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-style: italic;
+    color: var(--gray) !important;
+    font-size: 0.95rem;
+    margin-top: 0.6rem;
+    text-decoration: none !important;
+
+    &:hover {
+      color: var(--secondary) !important;
+    }
+  }
+
+  &-description {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: var(--darkgray) !important;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    text-decoration: none !important;
+
+    &:hover {
+      color: var(--secondary) !important;
+    }
+  }
+
+  &-specs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    margin: 0.3rem 0 0;
+  }
+
+  &-size,
+  &-condition,
+  &-shipping {
+    width: 100%;
+    text-align: center;
+    color: var(--gray);
+    font-size: 0.85rem;
+    margin: 0;
+
+    &::before {
+      opacity: 0.7;
+    }
+  }
+
+  &-size::before      { content: "Size: "; }
+  &-condition::before { content: "Condition: "; }
+  &-shipping::before  { content: "Shipping: "; }
+
+  &-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    width: 100%;
+  }
+
+  &-qtty {
+    color: var(--gray);
+    font-size: 0.85rem;
+  }
+
+  &-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.15em 0.55em;
+    border-radius: 3px;
+
+    &--available {
+      background: color-mix(in srgb, #4a6741 12%, transparent);
+      color: #4a6741;
+      border: 1px solid color-mix(in srgb, #4a6741 28%, transparent);
+    }
+
+    &--sold {
+      background: color-mix(in srgb, var(--gray) 12%, transparent);
+      color: var(--gray);
+      border: 1px solid var(--lightgray);
+    }
+  }
+
+  &-price {
+    color: var(--secondary);
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+
+  &-platform {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--secondary) !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--tertiary) !important;
+    }
+  }
+}
+
+.featured-next {
+  position: absolute;
+  right: -2.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--secondary);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+
+  &:hover {
+    color: var(--tertiary);
+  }
+}
+
+// ── Scroll strips ─────────────────────────────────────────────────────────────
+
+.shop-section {
+  margin-bottom: 1rem;
+}
+
+.shop-strip-wrap {
+  position: relative;
+}
+
+.shop-strip {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 0.5rem 0 0.75rem;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.strip-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: color-mix(in srgb, var(--light) 92%, transparent);
+  border: 1px solid var(--lightgray);
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--secondary);
+  cursor: pointer;
+  z-index: 2;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(44, 26, 14, 0.1);
+  transition: background 0.15s;
+  padding: 0;
+
+  &:hover {
+    background: var(--lightgray);
+  }
+
+  &[hidden] {
+    display: none !important;
+  }
+
+  &.strip-prev {
+    left: 0;
+  }
+
+  &.strip-next {
+    right: 0;
+  }
+}
+
+// ── Strip cards ───────────────────────────────────────────────────────────────
+
+.strip-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 160px 210px;
+  flex-shrink: 0;
+  width: 160px;
+  scroll-snap-align: start;
+  text-decoration: none !important;
+  color: inherit;
+
+  &:hover .strip-card-caption {
+    color: var(--secondary);
+  }
+
+  &-img {
+    width: 160px;
+    height: 160px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--lightgray);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 5px;
+      box-shadow: 0 1px 8px rgba(44, 26, 14, 0.12);
+    }
+  }
+
+  &-img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: color-mix(in srgb, var(--lightgray) 65%, var(--secondary));
+  }
+
+  &-caption {
+    font-size: 0.8rem;
+    text-align: center;
+    margin-top: 0.4rem;
+    color: var(--darkgray);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

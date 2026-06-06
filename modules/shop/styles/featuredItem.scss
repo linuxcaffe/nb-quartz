@@ -1,0 +1,113 @@
+@use "../../styles/variables.scss" as *;
+
+.featured-item {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin: 1.5rem 0 2.5rem;
+  padding: 1.5rem;
+  background: color-mix(in srgb, var(--light) 60%, var(--lightgray));
+  border: 1px solid var(--lightgray);
+  border-left: 3px solid var(--secondary);
+  border-radius: 6px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+}
+
+.featured-item-img-wrap {
+  flex: 0 0 240px;
+  display: block;
+
+  @media (max-width: 600px) {
+    flex: none;
+    width: 100%;
+  }
+}
+
+.featured-item-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.featured-item-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.featured-item-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+}
+
+.featured-item-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark) !important;
+  text-decoration: none !important;
+  line-height: 1.2;
+
+  &:hover {
+    color: var(--secondary) !important;
+  }
+}
+
+.featured-item-caption {
+  font-size: 1rem;
+  color: var(--gray);
+  font-style: italic;
+  margin: 0;
+}
+
+.featured-item-description {
+  font-size: 0.95rem;
+  color: var(--dark);
+  line-height: 1.6;
+  margin: 0.25rem 0 0;
+}
+
+.featured-item-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.featured-item-qtty {
+  font-size: 0.9rem;
+  color: var(--gray);
+  font-variant-numeric: tabular-nums;
+}
+
+.featured-item-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.featured-item-cta {
+  margin-left: auto;
+  display: inline-block;
+  background: var(--secondary);
+  color: var(--light) !important;
+  padding: 0.4em 1.1em;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none !important;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--tertiary);
+  }
+}

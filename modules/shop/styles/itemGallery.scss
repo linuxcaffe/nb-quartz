@@ -1,0 +1,94 @@
+// ── Item page image gallery ───────────────────────────────────────────────────
+
+.item-gallery {
+  margin-bottom: 1.5rem;
+}
+
+.item-gallery-hero-wrap {
+  position: relative;
+  background: color-mix(in srgb, var(--light) 60%, var(--lightgray));
+  border-radius: 8px;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.item-gallery-hero-img {
+  max-width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 2px 16px rgba(44, 26, 14, 0.13);
+}
+
+.item-gallery-next {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: color-mix(in srgb, var(--light) 88%, transparent);
+  border: 1px solid var(--lightgray);
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.2rem;
+  color: var(--secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  box-shadow: 0 1px 4px rgba(44, 26, 14, 0.1);
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--lightgray);
+  }
+}
+
+// ── Caption ───────────────────────────────────────────────────────────────────
+
+.item-gallery-caption {
+  font-style: italic;
+  color: var(--gray);
+  font-size: 0.95rem;
+  text-align: center;
+  margin: 0.6rem 0 0.2rem;
+}
+
+// ── Thumbnail strip ───────────────────────────────────────────────────────────
+
+.item-gallery-thumbs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.item-gallery-thumb {
+  background: none;
+  border: 2px solid var(--lightgray);
+  border-radius: 5px;
+  padding: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+
+  img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 3px;
+    display: block;
+  }
+
+  &:hover {
+    border-color: var(--tertiary);
+  }
+
+  &--active {
+    border-color: var(--secondary);
+  }
+}

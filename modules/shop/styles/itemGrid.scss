@@ -1,0 +1,123 @@
+@use "../../styles/variables.scss" as *;
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.item-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 280px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  overflow: hidden;
+  text-decoration: none !important;
+  color: var(--dark) !important;
+  background: var(--light);
+  transition: box-shadow 0.2s, transform 0.15s;
+
+  &:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &--sold {
+    opacity: 0.7;
+  }
+
+  &-img {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--light) 60%, var(--lightgray));
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  &-img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      45deg,
+      var(--lightgray),
+      var(--lightgray) 10px,
+      var(--light) 10px,
+      var(--light) 20px
+    );
+  }
+
+  &-body {
+    padding: 0.7rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  &-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    color: var(--dark);
+  }
+
+  &-caption {
+    font-size: 0.78rem;
+    color: var(--gray);
+    font-style: italic;
+    line-height: 1.3;
+  }
+
+  &-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding-top: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  &-qtty {
+    font-size: 0.78rem;
+    color: var(--gray);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15em 0.5em;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &-price {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--secondary);
+    margin-left: auto;
+  }
+}
+
+// Status badge colours — shared with itemMeta.scss
+.item-status--available {
+  background: color-mix(in srgb, #4a6741 12%, transparent);
+  color: #4a6741;
+  border: 1px solid color-mix(in srgb, #4a6741 28%, transparent);
+}
+
+.item-status--sold {
+  background: color-mix(in srgb, var(--gray) 12%, transparent);
+  color: var(--gray);
+  border: 1px solid var(--lightgray);
+}
