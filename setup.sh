@@ -14,6 +14,8 @@ set -euo pipefail
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BLUE='\033[0;34m'; BOLD='\033[1m'; NC='\033[0m'
 
+NON_GITHUB_REMOTE=false   # set true when notebook is mirrored to GitHub
+
 die()  { echo -e "\n${RED}Error: $*${NC}" >&2; exit 1; }
 info() { echo -e "${BLUE}→ $*${NC}"; }
 ok()   { echo -e "${GREEN}✓ $*${NC}"; }
@@ -116,12 +118,12 @@ gather_inputs() {
     warn "No themes found — skipping theme step."
   fi
 
-  # Modules
+  # Modules — only show those with an install.sh (stubs are not ready)
   local modules=()
   while IFS= read -r -d '' m; do
     local mname
     mname="$(basename "$m")"
-    [[ -f "${m}/module.json" ]] && modules+=("$mname")
+    [[ -f "${m}/module.json" && -x "${m}/install.sh" ]] && modules+=("$mname")
   done < <(find "${SCRIPT_DIR}/modules" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
 
   SELECTED_MODULES=()
@@ -207,8 +209,7 @@ ensure_notebook_remote() {
     fi
     git -C "$NB_DIR" push github HEAD:"${NOTEBOOK}"
     ok "Notebook mirrored to github.com/${GH_USER}/${NOTEBOOK} (branch: ${NOTEBOOK})"
-    warn "To keep GitHub in sync: git -C ${NB_DIR} push github HEAD:${NOTEBOOK}"
-    warn "Or add a post-sync hook. The original remote is untouched."
+    NON_GITHUB_REMOTE=true
   fi
 
   NOTEBOOK_REPO="${GH_USER}/${NOTEBOOK}"
@@ -269,6 +270,12 @@ install_core() {
   if ! grep -q "UnderscoreFiles" "${QUARTZ_DIR}/quartz.config.ts"; then
     sed -i 's/Plugin\.RemoveDrafts()/Plugin.RemoveDrafts(), Plugin.UnderscoreFiles()/' \
         "${QUARTZ_DIR}/quartz.config.ts"
+  fi
+  if grep -q "UnderscoreFiles" "${QUARTZ_DIR}/quartz.config.ts"; then
+    ok "UnderscoreFiles wired into quartz.config.ts"
+  else
+    warn "Could not auto-wire UnderscoreFiles — add it manually:"
+    warn "  Plugin.UnderscoreFiles() to the filters array in quartz.config.ts"
   fi
 
   ok "Core installed"
@@ -354,8 +361,9 @@ Edit this note to update the site header tagline and description.
 **SEO** — additional comma-separated keywords
 EOF
 
-  nb index add "_meta.md" --notebook "$NOTEBOOK" 2>/dev/null || true
-  ok "_meta.md created"
+  git -C "$NB_DIR" add "_meta.md"
+  git -C "$NB_DIR" commit -m "[nb-quartz] Add _meta.md site config"
+  ok "_meta.md created and committed"
 }
 
 # ── Push Quartz config to GitHub ──────────────────────────────────────────────
@@ -415,6 +423,18 @@ print_summary() {
   echo "  3. Site rebuilds automatically within 30 minutes"
   echo "     Trigger now: gh workflow run deploy.yml --repo ${GH_USER}/${SITE_REPO}"
   echo ""
+
+  if [[ "$NON_GITHUB_REMOTE" == "true" ]]; then
+    echo -e "${YELLOW}${BOLD}⚠ Non-GitHub notebook remote detected${NC}"
+    echo "  The notebook's primary remote (e.g. Codeberg) is NOT synced"
+    echo "  to GitHub automatically. After each 'nb sync', run:"
+    echo ""
+    echo "    git -C ${NB_DIR} push github HEAD:${NOTEBOOK}"
+    echo ""
+    echo "  Or add a post-sync git hook to do this automatically."
+    echo "  The site will only reflect what's on github.com/${NOTEBOOK_REPO}."
+    echo ""
+  fi
 
   if [[ -n "$CUSTOM_DOMAIN" ]]; then
     echo -e "${BOLD}DNS (one-time, at your registrar):${NC}"

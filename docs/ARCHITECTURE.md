@@ -236,7 +236,7 @@ validating the module system. Until then it runs as a standalone site.
 
 | Phase | Status |
 |-------|--------|
-| 1 — nb-quartz core | 🔧 In progress |
+| 1 — nb-quartz core | ✅ Working |
 | 2 — Module interface | 📐 Designed, not built |
 | 3 — Shop module extraction | ⏳ Pending phase 2 |
 | preciousfinds.ca migration | ⏳ Pending phase 3 |
