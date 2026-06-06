@@ -557,9 +557,19 @@ EOF
     fi
   fi
 
-  # Register all new files with nb's index
+  # Register new files with nb's index.
+  # Files in subdirectories belong in their folder's .index, not the root.
   for f in "${_added[@]}"; do
-    (cd "$NB_DIR" && nb index add "$f" 2>/dev/null) || true
+    local dir
+    dir="$(dirname "$f")"
+    local base
+    base="$(basename "$f")"
+    if [[ "$dir" == "." ]]; then
+      (cd "$NB_DIR" && nb index add "$base" 2>/dev/null) || true
+    else
+      # Append to the folder index — nb manages each folder separately
+      echo "$base" >> "${NB_DIR}/${dir}/.index"
+    fi
   done
 
   if [[ ${#_added[@]} -gt 0 ]]; then
