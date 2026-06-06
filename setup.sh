@@ -361,9 +361,10 @@ Edit this note to update the site header tagline and description.
 **SEO** — additional comma-separated keywords
 EOF
 
-  git -C "$NB_DIR" add "_meta.md"
-  git -C "$NB_DIR" commit -m "[nb-quartz] Add _meta.md site config"
-  ok "_meta.md created and committed"
+  # Register with nb's index so it appears in listings.
+  # nb auto-commits on the next nb operation (edit, sync, etc.) — we don't touch git here.
+  (cd "$NB_DIR" && nb index add "_meta.md" 2>/dev/null) || true
+  ok "_meta.md created"
 }
 
 # ── Push Quartz config to GitHub ──────────────────────────────────────────────
