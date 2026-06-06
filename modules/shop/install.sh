@@ -132,7 +132,7 @@ import * as Component from "./quartz/components"
 
 export const sharedPageComponents: SharedLayout = {
   head: Component.Head(),
-  header: [Component.PageTitle(), Component.Darkmode()],
+  header: [Component.PageTitle(), Component.SiteTagline(), Component.Darkmode()],
   afterBody: [Component.Search()],
   footer: Component.Footer({ links: {} }),
 }

@@ -257,10 +257,31 @@ install_core() {
   cp "${SCRIPT_DIR}/core/plugins/filters/underscoreFiles.ts" \
      "${QUARTZ_DIR}/quartz/plugins/filters/"
 
-  # Register in quartz/plugins/index.ts if not already present
+  # SiteConfig transformer — reads _meta.md frontmatter into cfg._siteConfig
+  mkdir -p "${QUARTZ_DIR}/quartz/plugins/transformers"
+  cp "${SCRIPT_DIR}/core/plugins/transformers/siteConfig.ts" \
+     "${QUARTZ_DIR}/quartz/plugins/transformers/"
+
+  # SiteTagline component — renders cfg._siteConfig.tagline in the header
+  cp "${SCRIPT_DIR}/core/components/SiteTagline.tsx" \
+     "${QUARTZ_DIR}/quartz/components/"
+
+  # Register exports in quartz/plugins/index.ts
   local plugins_index="${QUARTZ_DIR}/quartz/plugins/index.ts"
-  if ! grep -q "UnderscoreFiles" "$plugins_index"; then
+  grep -q "UnderscoreFiles" "$plugins_index" || \
     echo 'export { UnderscoreFiles } from "./filters/underscoreFiles"' >> "$plugins_index"
+  grep -q "SiteConfig" "$plugins_index" || \
+    echo 'export { SiteConfig } from "./transformers/siteConfig"'       >> "$plugins_index"
+
+  # Register SiteTagline in quartz/components/index.ts
+  local comp_index="${QUARTZ_DIR}/quartz/components/index.ts"
+  if ! grep -q "SiteTagline" "$comp_index"; then
+    cat >> "$comp_index" << 'EOF'
+
+// ── nb-quartz core ─────────────────────────────────────────────────────────────
+import SiteTagline from "./SiteTagline"
+export { SiteTagline }
+EOF
   fi
 
   # Image optimisation script + sharp dependency
@@ -275,16 +296,20 @@ install_core() {
   # Base layout (standard Quartz — all components intact)
   cp "${SCRIPT_DIR}/templates/quartz.layout.ts" "${QUARTZ_DIR}/quartz.layout.ts"
 
-  # Wire UnderscoreFiles into quartz.config.ts filters
+  # Wire plugins into quartz.config.ts
   if ! grep -q "UnderscoreFiles" "${QUARTZ_DIR}/quartz.config.ts"; then
     sed -i 's/Plugin\.RemoveDrafts()/Plugin.RemoveDrafts(), Plugin.UnderscoreFiles()/' \
         "${QUARTZ_DIR}/quartz.config.ts"
   fi
+  if ! grep -q "SiteConfig" "${QUARTZ_DIR}/quartz.config.ts"; then
+    sed -i 's/Plugin\.FrontMatter()/Plugin.FrontMatter(), Plugin.SiteConfig()/' \
+        "${QUARTZ_DIR}/quartz.config.ts"
+  fi
+
   if grep -q "UnderscoreFiles" "${QUARTZ_DIR}/quartz.config.ts"; then
-    ok "UnderscoreFiles wired into quartz.config.ts"
+    ok "Core plugins wired into quartz.config.ts"
   else
-    warn "Could not auto-wire UnderscoreFiles — add it manually:"
-    warn "  Plugin.UnderscoreFiles() to the filters array in quartz.config.ts"
+    warn "Could not auto-wire UnderscoreFiles — add it manually to the filters array"
   fi
 
   ok "Core installed"
@@ -374,6 +399,54 @@ EOF
   # nb auto-commits on the next nb operation (edit, sync, etc.) — we don't touch git here.
   (cd "$NB_DIR" && nb index add "_meta.md" 2>/dev/null) || true
   ok "_meta.md created"
+}
+
+# ── Starter content ───────────────────────────────────────────────────────────
+
+create_starter_content() {
+  # Core: create index.md if none exists (blank home page otherwise)
+  local index_file="${NB_DIR}/index.md"
+  if [[ ! -f "$index_file" ]]; then
+    info "Creating index.md in notebook..."
+    cat > "$index_file" <<EOF
+---
+title: ${SITE_TITLE}
+---
+
+Welcome to ${SITE_TITLE}.
+EOF
+    (cd "$NB_DIR" && nb index add "index.md" 2>/dev/null) || true
+    ok "index.md created"
+  fi
+
+  # Shop module: install item template into .templates/items/
+  if [[ " ${SELECTED_MODULES[*]} " == *" shop "* ]]; then
+    local tmpl_dir="${NB_DIR}/.templates/items"
+    mkdir -p "$tmpl_dir"
+    local tmpl_file="${tmpl_dir}/item.md"
+    if [[ ! -f "$tmpl_file" ]]; then
+      info "Creating shop item template..."
+      cat > "$tmpl_file" <<'EOF'
+---
+title: {{title}}
+category:
+status: available
+price:
+image:
+description:
+condition:
+size:
+shipping:
+platform:
+listing:
+tags: [{{tags}}]
+---
+
+{{content}}
+EOF
+      ok "Item template created at .templates/items/item.md"
+    fi
+  fi
 }
 
 # ── Push Quartz config to GitHub ──────────────────────────────────────────────
@@ -471,6 +544,7 @@ apply_theme
 install_modules
 write_deploy_workflow
 create_meta_note
+create_starter_content
 push_quartz_config
 enable_pages
 print_summary
