@@ -232,6 +232,9 @@ setup_quartz() {
       https://github.com/jackyzha0/quartz.git "$QUARTZ_DIR"
   fi
 
+  # Pin node version — quartz requires v22+
+  echo "22" > "${QUARTZ_DIR}/.nvmrc"
+
   cd "$QUARTZ_DIR"
   info "Installing dependencies (this takes a minute)..."
   npm ci --quiet
@@ -258,56 +261,63 @@ setup_quartz() {
 install_core() {
   info "Installing core plugins and scripts..."
 
-  # UnderscoreFiles filter — hides _meta.md-style config notes
+  # UnderscoreFiles filter — hides _meta.md-style config notes from the site
   cp "${SCRIPT_DIR}/core/plugins/filters/underscoreFiles.ts" \
      "${QUARTZ_DIR}/quartz/plugins/filters/"
 
-  # SiteConfig transformer — reads _meta.md frontmatter into cfg._siteConfig
-  mkdir -p "${QUARTZ_DIR}/quartz/plugins/transformers"
-  cp "${SCRIPT_DIR}/core/plugins/transformers/siteConfig.ts" \
-     "${QUARTZ_DIR}/quartz/plugins/transformers/"
+  # siteConfig util — reads _meta.md at build time; imported directly by components
+  mkdir -p "${QUARTZ_DIR}/quartz/util"
+  cp "${SCRIPT_DIR}/core/util/siteConfig.ts" \
+     "${QUARTZ_DIR}/quartz/util/siteConfig.ts"
 
-  # SiteTagline component — renders cfg._siteConfig.tagline in the header
-  cp "${SCRIPT_DIR}/core/components/SiteTagline.tsx" \
-     "${QUARTZ_DIR}/quartz/components/"
+  # Core components
+  cp "${SCRIPT_DIR}/core/components/SiteTagline.tsx" "${QUARTZ_DIR}/quartz/components/"
+  cp "${SCRIPT_DIR}/core/components/SiteFooter.tsx"  "${QUARTZ_DIR}/quartz/components/"
+  cp "${SCRIPT_DIR}/core/components/PageCaption.tsx" "${QUARTZ_DIR}/quartz/components/"
+  cp "${SCRIPT_DIR}/core/components/PageFootnote.tsx" "${QUARTZ_DIR}/quartz/components/"
+  cp "${SCRIPT_DIR}/core/styles/siteFooter.scss"     "${QUARTZ_DIR}/quartz/components/styles/"
 
   # Register exports in quartz/plugins/index.ts
   local plugins_index="${QUARTZ_DIR}/quartz/plugins/index.ts"
   grep -q "UnderscoreFiles" "$plugins_index" || \
     echo 'export { UnderscoreFiles } from "./filters/underscoreFiles"' >> "$plugins_index"
-  grep -q "SiteConfig" "$plugins_index" || \
-    echo 'export { SiteConfig } from "./transformers/siteConfig"'       >> "$plugins_index"
 
-  # Register SiteTagline in quartz/components/index.ts
+  # Register components in quartz/components/index.ts
   local comp_index="${QUARTZ_DIR}/quartz/components/index.ts"
   if ! grep -q "SiteTagline" "$comp_index"; then
     cat >> "$comp_index" << 'EOF'
 
 // ── nb-quartz core ─────────────────────────────────────────────────────────────
-import SiteTagline from "./SiteTagline"
-export { SiteTagline }
+import SiteTagline  from "./SiteTagline"
+import SiteFooter   from "./SiteFooter"
+import PageCaption  from "./PageCaption"
+import PageFootnote from "./PageFootnote"
+export { SiteTagline, SiteFooter, PageCaption, PageFootnote }
 EOF
   fi
 
-  # Image optimisation script + sharp dependency
+  # Image optimisation script + build wrapper + sharp dependency
   mkdir -p "${QUARTZ_DIR}/scripts"
   cp "${SCRIPT_DIR}/core/scripts/optimize-images.mjs" "${QUARTZ_DIR}/scripts/"
+  cp "${SCRIPT_DIR}/templates/build.sh" "${QUARTZ_DIR}/build.sh"
+  chmod +x "${QUARTZ_DIR}/build.sh"
+
+  # image-cache/ is a derived artifact — never commit it
+  grep -q "image-cache" "${QUARTZ_DIR}/.gitignore" 2>/dev/null || \
+    echo "image-cache/" >> "${QUARTZ_DIR}/.gitignore"
+
   cd "${QUARTZ_DIR}"
   if ! npm ls sharp &>/dev/null 2>&1; then
     info "Adding sharp image processing dependency..."
     npm install sharp --save --quiet
   fi
 
-  # Base layout (standard Quartz — all components intact)
+  # Base layout
   cp "${SCRIPT_DIR}/templates/quartz.layout.ts" "${QUARTZ_DIR}/quartz.layout.ts"
 
-  # Wire plugins into quartz.config.ts
+  # Wire UnderscoreFiles into quartz.config.ts
   if ! grep -q "UnderscoreFiles" "${QUARTZ_DIR}/quartz.config.ts"; then
     sed -i 's/Plugin\.RemoveDrafts()/Plugin.RemoveDrafts(), Plugin.UnderscoreFiles()/' \
-        "${QUARTZ_DIR}/quartz.config.ts"
-  fi
-  if ! grep -q "SiteConfig" "${QUARTZ_DIR}/quartz.config.ts"; then
-    sed -i 's/Plugin\.FrontMatter()/Plugin.FrontMatter(), Plugin.SiteConfig()/' \
         "${QUARTZ_DIR}/quartz.config.ts"
   fi
 
@@ -503,7 +513,7 @@ title: Example Item
 category: example
 status: available
 price: \$0.00
-image: images/example.jpg
+image:
 description: A short description shown in the shop and on the item page.
 condition: Excellent
 size: 10 × 5 × 3 cm
@@ -628,7 +638,12 @@ print_summary() {
   echo "  Quartz config:  ${QUARTZ_DIR}"
   echo "  Config repo:    https://github.com/${GH_USER}/${SITE_REPO}"
   echo "  Content repo:   https://github.com/${NOTEBOOK_REPO}"
-  echo "  Live at:        https://${BASE_URL}"
+  if [[ -n "$CUSTOM_DOMAIN" ]]; then
+    echo "  Preview at:     https://${GH_USER}.github.io/${SITE_REPO}/"
+    echo "  Live at:        https://${CUSTOM_DOMAIN}  (once DNS + domain swap done)"
+  else
+    echo "  Live at:        https://${BASE_URL}"
+  fi
   echo ""
   echo -e "${BOLD}Ongoing workflow:${NC}"
   echo "  1. Write notes in nb (notebook: ${NOTEBOOK})"

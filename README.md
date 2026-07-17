@@ -6,8 +6,8 @@ Turn any [nb](https://xwmx.github.io/nb/) notebook into a [Quartz v4](https://qu
 
 - Clones Quartz v4 and configures it for your notebook
 - Wires up a two-repo GitHub Actions pipeline (content repo + config repo)
-- Runs image optimisation (WebP thumbnails via `sharp`) on every build
-- Hides `_meta.md`-style config notes from the public site
+- Reads `_meta.md` for site-wide config (tagline, footer, social links) — hidden from the public site
+- Optimises images to WebP (480 px thumbs + 1200 px full) via `sharp` — notebook is never written to
 - Rebuilds automatically on every push, or every 30 minutes to pick up `nb sync` changes
 
 Optional **modules** extend the base install for specific use cases (e.g. vintage shop, portfolio). The shop module is the reference implementation.
@@ -74,25 +74,87 @@ Tag any item `featured` to include it in the rotating featured section on the ho
 ```
 nb-quartz/
 ├── setup.sh                  # Interactive setup
+├── build.sh                  # Local build wrapper (installed into each site)
 ├── templates/
 │   ├── deploy.yml            # GitHub Actions workflow template
+│   ├── build.sh              # build wrapper template
 │   ├── quartz.config.ts      # Base config placeholders
 │   └── quartz.layout.ts      # Base layout with NB_MODULE_* markers
 ├── core/
+│   ├── components/           # SiteTagline, SiteFooter, PageCaption, PageFootnote
 │   ├── plugins/filters/      # underscoreFiles.ts
-│   └── scripts/              # optimize-images.mjs
+│   ├── scripts/              # optimize-images.mjs
+│   ├── styles/               # siteFooter.scss
+│   └── util/                 # siteConfig.ts (reads _meta.md at build time)
 ├── themes/
 │   └── <name>/apply.sh       # Patches config + layout for the theme
 ├── modules/
 │   └── <name>/
 │       ├── module.json        # Metadata + layout slot declarations
 │       ├── install.sh         # Wires module into a Quartz instance
-│       ├── components/        # Quartz TSX components
+│       ├── components/        # Quartz TSX components (incl. imageUtils.ts)
 │       ├── plugins/           # Custom filters/transformers/emitters
 │       └── styles/            # Additional SCSS
 └── docs/
     └── ARCHITECTURE.md        # Full architecture reference
 ```
+
+## Site configuration — `_meta.md`
+
+Create a note called `_meta.md` at the root of your notebook (or let `setup.sh` create a blank one). It is never published — the `_` prefix hides it. Fields are read at build time by `quartz/util/siteConfig.ts`:
+
+| Field | Purpose |
+|-------|---------|
+| `tagline` | Shown in the site header below the page title |
+| `description` | Site-wide meta description for search engines |
+| `SEO` | Additional comma-separated keywords |
+| `footer` | Footer text — inline markdown supported (`**bold**`, `[links](url)`, `[[wikilinks]]`), multi-line YAML block (`\|`) for multiple lines |
+| `copyright` | Copyright line fallback when `footer` is not set |
+| `instagram` | Handle only — linked as `instagram.com/<handle>` |
+| `ebay` | Username — linked as `ebay.ca/usr/<name>` |
+| `etsy` | Shop name — linked as `etsy.com/shop/<name>` |
+
+Individual pages can also use `caption:` (shown below the title) and `footnote:` (shown at the bottom of the page) frontmatter fields.
+
+## Image optimisation
+
+nb-quartz treats the notebook directory as **read-only**. Source images stay in your notebook; optimised WebP variants are generated into `image-cache/` inside the Quartz config directory and never written back to the notebook.
+
+```
+~/.nb/<notebook>/images/   ← source JPGs (read-only)
+~/dev/quartz-<site>/
+  image-cache/             ← generated WebP (gitignored)
+  public/images/           ← final output: source + WebP copied here at build time
+```
+
+**Local builds:** use `./build.sh` instead of `npx quartz build` directly.
+
+```bash
+./build.sh           # optimise → build → copy cache
+./build.sh --serve   # same, then start dev server on :8080
+```
+
+**GitHub Actions:** `deploy.yml` caches `image-cache/` by source image hash so Sharp only runs when images actually change.
+
+Shop components automatically serve `-thumb.webp` (480 px) for cards and grids, `.webp` (1200 px) for gallery heroes. The result is typically 10–50× smaller payloads than serving original camera JPEGs.
+
+## Vanilla Quartz compatibility
+
+nb-quartz is a thin layer on top of a standard Quartz v4 install. The `quartz.config.ts` and `quartz.layout.ts` files are the same ones the [Quartz docs](https://quartz.jzhao.xyz/) describe. Any built-in Quartz plugin or component works without modification — just add it to those files as you normally would:
+
+```typescript
+// quartz.config.ts — add any built-in plugin:
+Plugin.Breadcrumbs(),
+Plugin.TagPage(),    // already included by default
+
+// quartz.layout.ts — add any built-in component:
+Component.Graph(),
+Component.TableOfContents(),
+Component.Backlinks(),
+Component.Explorer(),
+```
+
+The base layout (`templates/quartz.layout.ts`) keeps all standard Quartz sidebar components intact. The **shop module** replaces the layout with a sidebar-free version appropriate for a storefront — if you want Quartz features alongside shop pages, add them back into `quartz.layout.ts` directly after install.
 
 ## Pitfalls
 

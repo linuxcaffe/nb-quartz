@@ -47,7 +47,7 @@ jobs:
         uses: actions/cache@v4
         id: img-cache
         with:
-          path: content/images
+          path: image-cache
           key: images-v1-${{ hashFiles('content/images/**.jpg', 'content/images/**.jpeg', 'content/images/**.png', 'content/images/**.JPG', 'content/images/**.JPEG', 'content/images/**.PNG') }}
 
       - name: Optimize images
@@ -56,6 +56,13 @@ jobs:
 
       - name: Build site
         run: npx quartz build --directory content
+
+      - name: Copy optimized images into public/
+        run: |
+          if [ -d "image-cache" ] && [ "$(ls -A image-cache 2>/dev/null)" ]; then
+            mkdir -p public/images
+            cp image-cache/* public/images/
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

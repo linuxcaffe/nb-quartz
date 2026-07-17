@@ -30,7 +30,7 @@ export const CategoryPage: QuartzEmitterPlugin = () => {
   const Header = HeaderConstructor()
   const Body = BodyConstructor()
 
-  return {
+  const plugin = {
     name: "CategoryPage",
     getQuartzComponents() {
       return [
@@ -80,7 +80,8 @@ export const CategoryPage: QuartzEmitterPlugin = () => {
       }
     },
     async *partialEmit(ctx, content, resources, _changeEvents) {
-      yield* this.emit!(ctx, content, resources)
+      yield* plugin.emit(ctx, content, resources)
     },
   }
+  return plugin
 }

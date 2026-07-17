@@ -2,26 +2,34 @@
 /**
  * optimize-images.mjs
  *
- * Reads raw photos from content/images/ and writes two WebP variants:
+ * Reads source photos from content/images/ (read-only) and writes two WebP
+ * variants into image-cache/ (never touches the notebook):
  *
  *   {name}-thumb.webp  — 480 px wide, quality 80  (cards, strips, nav)
  *   {name}.webp        — 1200 px wide, quality 85  (gallery, hero, featured)
  *
  * EXIF orientation is applied (rotate()) so portrait shots display correctly.
- * Source files (jpg/png) are left unchanged.
  * Already-processed files are skipped unless the source is newer.
  *
+ * The build.sh wrapper copies image-cache/ → public/images/ after quartz build.
+ *
  * Usage:
- *   node scripts/optimize-images.mjs [--dir content/images]
+ *   node scripts/optimize-images.mjs [--src content/images] [--cache image-cache]
  */
 
 import sharp from "sharp"
-import { readdir, stat } from "fs/promises"
+import { mkdir, readdir, stat } from "fs/promises"
 import { join, extname, basename } from "path"
 
-const IMAGES_DIR  = process.argv.includes("--dir")
-  ? process.argv[process.argv.indexOf("--dir") + 1]
-  : "content/images"
+const args = process.argv
+
+function argVal(flag, def) {
+  const i = args.indexOf(flag)
+  return i !== -1 ? args[i + 1] : def
+}
+
+const IMAGES_DIR  = argVal("--src",   "content/images")
+const CACHE_DIR   = argVal("--cache", "image-cache")
 
 const THUMB_WIDTH = 480
 const FULL_WIDTH  = 1200
@@ -32,6 +40,8 @@ const SUPPORTED   = new Set([".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG", "
 async function mtimeMs(p) {
   try { return (await stat(p)).mtimeMs } catch { return 0 }
 }
+
+await mkdir(CACHE_DIR, { recursive: true })
 
 const files  = await readdir(IMAGES_DIR).catch(() => [])
 const images = files.filter((f) => SUPPORTED.has(extname(f)) && !f.includes("-thumb"))
@@ -49,8 +59,8 @@ await Promise.all(
   images.map(async (file) => {
     const src       = join(IMAGES_DIR, file)
     const base      = basename(file, extname(file))
-    const thumbPath = join(IMAGES_DIR, `${base}-thumb.webp`)
-    const fullPath  = join(IMAGES_DIR, `${base}.webp`)
+    const thumbPath = join(CACHE_DIR, `${base}-thumb.webp`)
+    const fullPath  = join(CACHE_DIR, `${base}.webp`)
 
     const srcMtime   = await mtimeMs(src)
     const thumbMtime = await mtimeMs(thumbPath)

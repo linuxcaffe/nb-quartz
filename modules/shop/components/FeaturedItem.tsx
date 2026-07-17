@@ -1,18 +1,9 @@
 import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "../types"
-import { resolveRelative, pathToRoot, joinSegments } from "../../util/path"
+import { resolveRelative } from "../../util/path"
 import { classNames } from "../../util/lang"
+import { fullSrc } from "./imageUtils"
 // @ts-ignore
 import style from "../styles/featuredItem.scss"
-
-function normalizeImage(image: string, fromSlug: string): string | null {
-  if (!image) return null
-  const first = image.split(",")[0].trim()
-  if (!first) return null
-  const rel = first.startsWith("../images/") ? first.slice(3)
-            : first.startsWith("images/")    ? first
-            : `images/${first}`
-  return joinSegments(pathToRoot(fromSlug as any), rel)
-}
 
 export default (() => {
   const FeaturedItem: QuartzComponent = (props: QuartzComponentProps) => {
@@ -38,7 +29,7 @@ export default (() => {
     const platform    = fm["platform"] as string | undefined
 
     const href   = resolveRelative(fileData.slug!, item.slug!)
-    const imgSrc = image ? normalizeImage(image, fileData.slug!) : null
+    const imgSrc = fullSrc(image, fileData.slug!)
 
     const statusLabel = status === "available" ? "Available" : status === "sold" ? "Sold" : status
 

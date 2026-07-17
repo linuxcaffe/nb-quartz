@@ -133,14 +133,15 @@ import * as Component from "./quartz/components"
 export const sharedPageComponents: SharedLayout = {
   head: Component.Head(),
   header: [Component.PageTitle(), Component.SiteTagline(), Component.Darkmode()],
-  afterBody: [Component.Search()],
-  footer: Component.Footer({ links: {} }),
+  afterBody: [Component.PageFootnote(), Component.Search()],
+  footer: Component.SiteFooter(),
 }
 
 export const defaultContentPageLayout: PageLayout = {
   beforeBody: [
     Component.ShopNav(),
     Component.ArticleTitle(),
+    Component.PageCaption(),
     Component.ConditionalRender({
       component: Component.ShopHome(),
       condition: (page) => page.fileData.slug === "index",

@@ -1,0 +1,33 @@
+// ── Shop footer ───────────────────────────────────────────────────────────────
+
+.site-footer {
+  border-top: 1px solid var(--lightgray);
+  text-align: center;
+  padding: 1.5rem 1rem 2.5rem;
+  margin-top: 2rem;
+
+  .site-footer-copy {
+    color: var(--gray);
+    font-size: 0.85rem;
+    margin: 0 0 0.6rem;
+  }
+
+  .site-footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+
+    a {
+      color: var(--gray);
+      font-size: 0.85rem;
+      text-decoration: none;
+
+      &:hover {
+        color: var(--secondary);
+      }
+    }
+  }
+}
